@@ -6,7 +6,7 @@
 
 - `video_yolo.py`: YouTube 비디오 URL에서 객체 인식을 수행하는 스크립트
 - `webcam_yolo_gui.py`: 웹캠에서 실시간 객체 인식을 수행하는 스크립트
-- `index.html`: `webcam_yolo_gui.py`를 웹에서 실행하도록 수정한 파일일
+- `index.html`: `webcam_yolo_gui.py`를 웹에서 실행하도록 수정한 파일
 
 ## 요구 사항
 
