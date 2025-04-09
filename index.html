@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOv5 Object Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #webcam {
+            display: none; /* Hide the video element */
+        }
+    </style>
+</head>
+<body>
+    <h1>YOLOv5 Object Detection</h1>
+    <video id="webcam" autoplay playsinline width="640" height="480"></video>
+    <canvas id="output" width="640" height="480"></canvas>
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('output');
+        const ctx = canvas.getContext('2d');
+
+        // Set up webcam
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: 640, height: 480 },
+                audio: false
+            });
+            video.srcObject = stream;
+            return new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    resolve(video);
+                };
+            });
+        }
+
+        // Load the coco-ssd model
+        async function loadModel() {
+            try {
+                const model = await cocoSsd.load();
+                console.log("Model loaded successfully!");
+                return model;
+            } catch (error) {
+                console.error("Error loading model:", error);
+                alert("Model loading failed. Please check your connection or try again later.");
+            }
+        }
+
+        // Detect objects in the video stream
+        async function detectObjects(model) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear previous frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);  // Draw video frame on canvas
+
+            // Get predictions from the model
+            const predictions = await model.detect(video);
+
+            predictions.forEach(prediction => {
+                const [x, y, width, height] = prediction.bbox;
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, width, height);
+                ctx.font = '18px Arial';
+                ctx.fillStyle = 'green';
+                ctx.fillText(`${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`, x, y > 10 ? y - 5 : 10);
+            });
+
+            // Continue detecting objects in the next frame
+            requestAnimationFrame(() => detectObjects(model));
+        }
+
+        async function main() {
+            await setupCamera();
+            video.play();
+            const model = await loadModel();
+            if (model) {
+                detectObjects(model);  // Start object detection
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>
